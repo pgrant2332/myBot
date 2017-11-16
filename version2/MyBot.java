@@ -1,6 +1,6 @@
 import hlt.*;
 
-import java.util.ArrayList;
+import java.util.*;
 
 public class MyBot {
 
@@ -61,8 +61,24 @@ public class MyBot {
         for (i = 0; i < count; i++) {
           if(nearbyPlanets[i] != null) {
             if (nearbyPlanets[i].isOwned()) {
-              if(nearbyPlanets[i].getOwner() != me || nearbyPlanets[i].isFull())
-                continue;
+              if(nearbyPlanets[i].getOwner() != me || nearbyPlanets[i].isFull()) {
+                //attack docked ships
+                if(nearbyPlanets[i].getOwner() != me) {
+                  int ownerOfShip = nearbyPlanets[i].getOwner();
+                  List<Integer> dockedShips = nearbyPlanets[i].getDockedShips();
+                  for(final int shipId : dockedShips) {
+                    Ship enemy = gameMap.getShip(ownerOfShip, shipId);
+                    final ThrustMove newThrustMove = Navigation.navigateShipTowardsTarget(gameMap, ship, enemy, Constants.MAX_SPEED, true, Constants.MAX_NAVIGATION_CORRECTIONS, Math.PI/180.0 );
+                      if (newThrustMove != null) {
+                        moveList.add(newThrustMove);
+                      }
+                      break;
+                  }
+                  break;
+                }
+                else
+                  continue;
+              }
             }
 
             if (ship.canDock(nearbyPlanets[i])) {
@@ -74,12 +90,11 @@ public class MyBot {
               if (newThrustMove != null) {
                 moveList.add(newThrustMove);
               }
-
               break;
           }
         }
       }
-        //add attack
+
 
         Networking.sendMoves(moveList);
     }
